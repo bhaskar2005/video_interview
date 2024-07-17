@@ -1,24 +1,49 @@
-import {
-  StreamCall,
-  StreamVideo,
-  StreamVideoClient,
-  User,
-} from '@stream-io/video-react-sdk';
+import { useUser } from '@clerk/nextjs';
+import { StreamVideoClient, StreamVideo } from '@stream-io/video-react-sdk';
+import { error } from 'console';
+import { ReactNode, useState, useEffect } from 'react';
 
-const apiKey = 'your-api-key';
-const userId = 'user-id';
-const token = 'authentication-token';
-const user: User = { id: userId };
+const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
-const client = new StreamVideoClient({ apiKey, user, token });
-const call = client.call('default', 'my-first-call');
-call.join({ create: true });
+interface StreamVideoProviderProps {
+  children: ReactNode;
+}
 
-export const MyApp = () => {
+const StreamVideoProvider: React.FC<StreamVideoProviderProps> = ({ children }) => {
+  const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(undefined);
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    // if (apiKey) {
+    //   const client = new StreamVideoClient(apiKey);
+    //   setVideoClient(client);
+    // }
+
+    if(!isLoaded || !user) {
+      return;
+    } if (!apiKey) {
+      throw new Error('API key is not set');
+    }
+
+    const client = new StreamVideoClient({
+      apiKey,
+        user: {
+          id: user?.id,
+          name: user?.username || user?.id,
+          image: user?.imageUrl,
+        },
+    })
+  }, [user, isLoaded]);
+
+  if (!videoClient) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-      </StreamCall>
+    <StreamVideo client={videoClient}>
+      {children}
     </StreamVideo>
   );
 };
+
+export default StreamVideoProvider;

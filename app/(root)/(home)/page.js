@@ -14,7 +14,8 @@ const Home = () => {
                 
             </div>
                 <div className=' w-1/2 flex items-center justify-center'>
-                <p>Test text</p>
+                <p>Text here 
+                </p>
                 </div>         
         </div>
     );
